@@ -7,7 +7,7 @@ namespace appClient.Controllers
         // GET: ImageController/Create
         public ActionResult Create()
         {
-            return View();
+            return View("UploadImage");
         }
 
         // POST: ImageController/Create
