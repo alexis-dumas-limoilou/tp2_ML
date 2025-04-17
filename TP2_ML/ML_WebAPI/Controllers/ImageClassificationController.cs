@@ -1,4 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using ML_WebAPI.Models;
+using ML_WebAPI.Services;
 
 namespace ML_WebAPI.Controllers
 {
@@ -6,7 +8,7 @@ namespace ML_WebAPI.Controllers
     [Route("[controller]")]
     public class ImageClassificationController : ControllerBase
     {
-        [HttpPost()]
+        [HttpPost("formFile")]
         public IActionResult Post(IFormFile imageFile)
         {
             if (imageFile == null || imageFile.Length == 0)
@@ -23,14 +25,20 @@ namespace ML_WebAPI.Controllers
                 image = memoryStream.ToArray();
             }
 
-            var imageData = new MLImagesModel.ModelInput()
-            {
-                ImageSource = image
-            };
+            PredictionResult predictionResult = ImageClassification.Result(image);
 
-            var result = MLImagesModel.Predict(imageData);
+            return Ok(predictionResult);
+        }
 
-            return Ok(result.PredictedLabel);
+        [HttpPost("byte")]
+        public IActionResult Post(byte[] image)
+        {
+            if (image == null || image.Length == 0)
+                return BadRequest("Image data is required.");
+
+            PredictionResult predictionResult = ImageClassification.Result(image);
+
+            return Ok(predictionResult);
         }
     }
 }
