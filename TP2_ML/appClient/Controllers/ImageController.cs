@@ -1,65 +1,98 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using appClient.Models;
+using System.Reflection;
+using System.Diagnostics;
+using System.Net.Http;
+using System.Net.Http.Headers;
+using Newtonsoft.Json;
 
 namespace appClient.Controllers
 {
     public class ImageController : Controller
     {
+        private readonly HttpClient _httpClient;
+
+        public ImageController(HttpClient httpClient)
+        {
+            _httpClient = httpClient;
+        }
         // GET: ImageController/Create
         public ActionResult Create()
         {
-            return View("UploadImage");
+            var model = new Image();
+            if (TempData["Content"] != null)
+            {
+                string content = TempData["Content"].ToString();
+
+                // Désérialiser les données si c'est du JSON
+                var data = JsonConvert.DeserializeObject<dynamic>(content);
+                ViewBag.Type = data.predictedLabel; // Récupère l'étiquette prédite
+                ViewBag.Confiance = data.confidence; // Récupère la confiance
+            }
+
+            return View(model);
+
         }
 
-        // POST: ImageController/Create
-        [HttpPost]
+            // POST: ImageController/Create
+            [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<ActionResult> Upload(IFormFile Image, string Title)
+        public async Task<ActionResult> Upload(Image model)
         {
-            if (Image != null && Image.Length > 0)
+            if (ModelState.IsValid)
             {
-                var response = await SendToApi(Image, Title);
+                if (model.ImageData != null && model.ImageData.Length > 0)
+                {
+                    var response = await SendToApi(model.ImageData);
 
-                if (response.IsSuccessStatusCode)
-                {
-                    // Traitement en cas de succès
-                    return RedirectToAction("Create");
+                    if (response.IsSuccessStatusCode)
+                    {
+                        string content = await response.Content.ReadAsStringAsync();
+                        TempData["content"] = content;
+
+                        // Traitement en cas de succès
+                        return RedirectToAction("Create");
+                    }
+                    else
+                    {
+                        // Gestion des erreurs
+                        ViewBag.ErrorMessage = "Échec de l'envoi à l'API ML_WebAPI.";
+                        var errorViewModel = new ErrorViewModel
+                        {
+                            RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier
+                        };
+
+                        return View("Error", errorViewModel);
+                    }
                 }
-                else
-                {
-                    // Gestion des erreurs
-                    ViewBag.ErrorMessage = "Échec de l'envoi à l'API ML_WebAPI.";
-                    return View("Error");
-                }
+                return View("UploadImage");
             }
 
             ViewBag.ErrorMessage = "Aucune image détectée.";
-            return View("Error");
+            return View("Error", model);
         }
-
-
-        public async Task<HttpResponseMessage> SendToApi(IFormFile image, string title)
+        public async Task<HttpResponseMessage> SendToApi(IFormFile image)
         {
-            using (var httpClient = new HttpClient())
-            {
-                var apiUrl = "https://localhost:7278/ImageClassification/byte";
+                var apiUrl = "https://localhost:7278/ImageClassification/formFile";
 
                 using (var memoryStream = new MemoryStream())
                 {
                     image.CopyTo(memoryStream);
                     var imageData = memoryStream.ToArray();
+                    
+                    var byteArrayContent = new ByteArrayContent(imageData);
+                    byteArrayContent.Headers.ContentType = new MediaTypeHeaderValue(image.ContentType);
 
                     // Crée le contenu pour l'envoi
                     var content = new MultipartFormDataContent
                     {
-                        { new ByteArrayContent(imageData), "Image", image.FileName }
+                        { byteArrayContent, "imageFile", image.FileName }
                     };
-
+                
                     // Envoi les données
-                    var response = await httpClient.PostAsync(apiUrl, content);
+                    var response = await _httpClient.PostAsync(apiUrl, content);
 
                     return response;
-                }
             }
         }
     }

@@ -1,0 +1,42 @@
+﻿@model appClient.Models.Image
+
+@{
+    ViewData["Title"] = "Téléversement d'image";
+}
+
+<h1>UploadImage</h1>
+
+<h4>Image</h4>
+<hr />
+<div class="row">
+    @if (ViewBag.ErrorMessage != null)
+    {
+        <p>@ViewBag.ErrorMessage</p>
+    }
+    else
+    {
+        <div class="col-md-12">
+            <form asp-action="Upload" class="row align-items-center" enctype="multipart/form-data">
+                <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                <div class="form-group col-md-8">
+                    <label asp-for="ImageData" class="control-label"></label>
+                    <input type="file" asp-for="ImageData" class="form-control" accept=".png, .gif, .jpeg, .jpg, .webp, .bmp" />
+                    <span asp-validation-for="ImageData" class="text-danger"></span>
+                </div>
+                <div class="form-group col-md-4">
+                    <input type="submit" value="Envoyer l'image" class="btn btn-primary" />
+                </div>
+            </form>
+        </div>
+    }
+    @if (ViewBag.Type != null)
+    {
+        <div> Il y a @((Convert.ToDouble(ViewBag.Confiance)*100).ToString("F2"))% de chance que cette image appartienne à la catégorie : @ViewBag.Type</div>
+    }
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

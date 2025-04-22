@@ -14,7 +14,7 @@ namespace ML_WebAPI.Controllers
             if (imageFile == null || imageFile.Length == 0)
                 return BadRequest("Image data is required.");
 
-            var supportedTypes = new[] { "image/jpeg", "image/png", "image/bmp" };
+            var supportedTypes = new[] { "image/jpeg", "image/png", "image/bmp", "image/jpg", "image/gif", "image/webp" };
             if (!supportedTypes.Contains(imageFile.ContentType.ToLower()))
                 return BadRequest("Unsupported file format.");
 
