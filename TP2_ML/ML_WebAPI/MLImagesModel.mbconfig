@@ -17,8 +17,8 @@
         "Version": 1,
         "Type": "Trial",
         "TrainerName": "ImageClassificationMulti",
-        "Score": 0.85300492610837442,
-        "RuntimeInSeconds": 5796.219,
+        "Score": 0.8545812807881773,
+        "RuntimeInSeconds": 5697.464,
         "Parameter": {
           "_SCHEMA_": "e0 * e1 * e2",
           "e0": {
@@ -59,8 +59,8 @@
     "TrainingTime": 2147483647,
     "ValidationOption": {
       "Version": 0,
-      "Type": "TrainValidateSplitValidationOption",
-      "SplitRatio": 0.2
+      "Type": "FileValidationOption",
+      "FilePath": "C:\\Users\\maste\\OneDrive - Cégep Limoilou\\VeilleTechnologique\\TP2\\tp2_ML\\cifar10\\test"
     }
   }
 }
